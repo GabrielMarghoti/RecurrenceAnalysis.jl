@@ -260,10 +260,15 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:sq
         throw(ArgumentError("Invalid shape. Use :square or :triangle."))
     end
 
-    dh = zeros(num_motifs)
-
     # Total number of possible motifs
     total_motifs = (N - L) * (N - L)
+
+    dh = zeros(num_motifs)
+
+    if sampling == :columnwise
+        dh = zeros(N-L, num_motifs)
+        total_motifs = (N - L)
+    end
 
     # Determine the number of samples
     if num_samples isa Float64
@@ -282,7 +287,6 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:sq
     # Determine the sampling strategy
     if sampling == :full
         # Full matrix sampling
-        num_samples = total_motifs  # Override num_samples to ensure full sampling
         for i in 1:(N - L)
             for j in 1:(N - L)
                 motif_idx = compute_motif_index(R, i, j, L, shape)
@@ -299,11 +303,10 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:sq
         end
     elseif sampling == :columnwise
         # Column-wise sampling
-        num_samples = total_motifs  # Override num_samples to ensure full sampling
         for j in 1:(N - L)
             for i in 1:(N - L)
                 motif_idx = compute_motif_index(R, i, j, L, shape)
-                dh[Int(1 + motif_idx)] += 1
+                dh[j, Int(1 + motif_idx)] += 1
             end
         end
     else

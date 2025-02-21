@@ -387,14 +387,85 @@ of recurrence times [1].
 nmprt(R::Union{ARM,AbstractMatrix}, kwargs...) = maximum(verticalhistograms(R;theiler=deftheiler(R), kwargs...)[2])
 
 
-function motifs_probabilities(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square)
-    histogram = motifshistogram(R, L; shape=:square)
-    return histogram/sum(histogram)
+
+"""
+    motifs_probabilities(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
+
+Calculate the probabilities of motifs from a given recurrence matrix `R` and a motif size `L`.
+
+# Arguments
+- `R::Union{ARM,AbstractMatrix}`: The recurrence matrix.
+- `L::Int`: The size of the motif (L x L).
+- `shape::Symbol`: The shape of the motif (`:square` or `:triangle`). Default is `:square`.
+- `sampling::Symbol`: The sampling strategy (`:full`, `:random`, or `:columnwise`). Default is `:full`.
+- `num_samples::Union{Int,Float64}`: Number of samples to collect. If a fraction (0 < num_samples < 1), it represents a fraction of the total number of motifs. Default is `1.0`.
+
+# Returns
+- `probabilities::Array{Float64}`: A vector or matrix of probabilities for each motif.
+"""
+function motifs_probabilities(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
+    # Compute the motif histogram
+    histogram = motifshistogram(R, L; shape=shape, sampling=sampling, num_samples=num_samples)
+
+    # Normalize the histogram to get probabilities
+    if sampling == :columnwise
+        # For column-wise sampling, normalize each column separately
+        probabilities = similar(histogram, Float64)
+        for i in axes(histogram, 1)
+            col_sum = sum(histogram[i, :])
+            probabilities[i, :] = col_sum > 0 ? histogram[i, :] ./ col_sum : zeros(size(histogram[i, :]))
+        end
+    else
+        # For full or random sampling, normalize the entire histogram
+        total_sum = sum(histogram)
+        probabilities = total_sum > 0 ? histogram ./ total_sum : zeros(size(histogram))
+    end
+
+    return probabilities
 end
 
-function recurrence_motifs_entropy(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square)
-    probabilities = motifs_probabilities(R, L; shape=:square)
-    return histogram/sum(histogram)
+"""
+    motifs_entropy(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
+
+Compute the Shannon entropy of motifs from a given recurrence matrix `R` and a motif size `L`.
+
+# Arguments
+- `R::Union{ARM,AbstractMatrix}`: The recurrence matrix.
+- `L::Int`: The size of the motif (L x L).
+- `shape::Symbol`: The shape of the motif (`:square` or `:triangle`). Default is `:square`.
+- `sampling::Symbol`: The sampling strategy (`:full`, `:random`, or `:columnwise`). Default is `:full`.
+- `num_samples::Union{Int,Float64}`: Number of samples to collect. If a fraction (0 < num_samples < 1), it represents a fraction of the total number of motifs. Default is `1.0`.
+
+# Returns
+- `entropy::Float64`: The Shannon entropy of the motif probabilities.
+"""
+function motifs_entropy(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
+    # Compute the motif probabilities
+    probabilities = motifs_probabilities(R, L; shape=shape, sampling=sampling, num_samples=num_samples)
+
+    # Initialize entropy
+    entropy = sampling == :columnwise ? 0.0 : zeros(size(histogram)[1])
+
+    # Compute Shannon entropy
+    if sampling == :columnwise
+        # For column-wise sampling, compute entropy for each column
+        for i in axes(probabilities, 1)
+            for p in probabilities[i, :]
+                if p > 0
+                    entropy[i] -= p * log(p)
+                end
+            end
+        end
+    else
+        # For full or random sampling, compute entropy over all probabilities
+        for p in probabilities
+            if p > 0
+                entropy -= p * log(p)
+            end
+        end
+    end
+
+    return entropy
 end
 
 ###########################################################################################
