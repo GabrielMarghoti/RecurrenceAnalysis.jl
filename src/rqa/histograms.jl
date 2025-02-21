@@ -271,7 +271,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:sq
     end
 
     # Determine the number of samples
-    if num_samples isa Float64
+    if num_samples isa Float64 || num_samples == 1
         if num_samples <= 0 || num_samples > 1
             throw(ArgumentError("num_samples as a fraction must be in the range (0, 1]."))
         end
