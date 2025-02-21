@@ -444,7 +444,7 @@ function motifs_entropy(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:squ
     probabilities = motifs_probabilities(R, L; shape=shape, sampling=sampling, num_samples=num_samples)
 
     # Initialize entropy
-    entropy = sampling == :columnwise ? 0.0 : zeros(size(histogram, 1))
+    entropy = sampling == :columnwise ? 0.0 : zeros(size(probabilities, 1))
 
     # Compute Shannon entropy
     if sampling == :columnwise
