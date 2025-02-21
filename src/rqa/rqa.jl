@@ -385,6 +385,18 @@ of recurrence times [1].
 
 """
 nmprt(R::Union{ARM,AbstractMatrix}, kwargs...) = maximum(verticalhistograms(R;theiler=deftheiler(R), kwargs...)[2])
+
+
+function motifs_probabilities(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square)
+    histogram = motifshistogram(R, L; shape=:square)
+    return histogram/sum(histogram)
+end
+
+function recurrence_motifs_entropy(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square)
+    probabilities = motifs_probabilities(R, L; shape=:square)
+    return histogram/sum(histogram)
+end
+
 ###########################################################################################
 # 4. All in one
 ###########################################################################################

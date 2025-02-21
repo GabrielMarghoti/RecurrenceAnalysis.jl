@@ -232,3 +232,129 @@ function recurrencestructures(x::Union{ARM,AbstractMatrix};
     end
     return histograms
 end
+
+"""
+    motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
+
+Calculate the probabilities of motifs from a given recurrence matrix `R` and a motif size `L`.
+
+# Arguments
+- `R::Union{ARM,AbstractMatrix}`: The recurrence matrix.
+- `L::Int`: The size of the motif (L x L).
+- `shape::Symbol`: The shape of the motif (`:square` or `:triangle`). Default is `:square`.
+- `sampling::Symbol`: The sampling strategy (`:full`, `:random`, or `:columnwise`). Default is `:full`.
+- `num_samples::Union{Int,Float64}`: Number of samples to collect. If a fraction (0 < num_samples < 1), it represents a fraction of the total number of motifs. Default is `1.0` (full sampling).
+
+# Returns
+- `probabilities::Vector{Float64}`: A vector of probabilities for each motif.
+"""
+function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
+    N = size(R, 1)
+    
+    # Determine the number of motifs based on the shape
+    if shape == :square
+        num_motifs = 2^(L * L)
+    elseif shape == :triangle
+        num_motifs = 2^(div(L * (L - 1), 2))  # Only lower triangular part
+    else
+        throw(ArgumentError("Invalid shape. Use :square or :triangle."))
+    end
+
+    dh = zeros(num_motifs)
+
+    # Total number of possible motifs
+    total_motifs = (N - L) * (N - L)
+
+    # Determine the number of samples
+    if num_samples isa Float64
+        if num_samples <= 0 || num_samples > 1
+            throw(ArgumentError("num_samples as a fraction must be in the range (0, 1]."))
+        end
+        num_samples = Int(round(num_samples * total_motifs))
+    elseif num_samples isa Int
+        if num_samples <= 0 || num_samples > total_motifs
+            throw(ArgumentError("num_samples must be in the range (1, total_motifs]."))
+        end
+    else
+        throw(ArgumentError("num_samples must be an Int or a Float64."))
+    end
+
+    # Determine the sampling strategy
+    if sampling == :full
+        # Full matrix sampling
+        num_samples = total_motifs  # Override num_samples to ensure full sampling
+        for i in 1:(N - L)
+            for j in 1:(N - L)
+                motif_idx = compute_motif_index(R, i, j, L, shape)
+                dh[Int(1 + motif_idx)] += 1
+            end
+        end
+    elseif sampling == :random
+        # Random sampling of motifs
+        for _ in 1:num_samples
+            i = rand(1:(N - L))
+            j = rand(1:(N - L))
+            motif_idx = compute_motif_index(R, i, j, L, shape)
+            dh[Int(1 + motif_idx)] += 1
+        end
+    elseif sampling == :columnwise
+        # Column-wise sampling
+        num_samples = total_motifs  # Override num_samples to ensure full sampling
+        for j in 1:(N - L)
+            for i in 1:(N - L)
+                motif_idx = compute_motif_index(R, i, j, L, shape)
+                dh[Int(1 + motif_idx)] += 1
+            end
+        end
+    else
+        throw(ArgumentError("Invalid sampling strategy. Use :full, :random, or :columnwise."))
+    end
+
+    return dh
+end
+
+"""
+    compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::Int, shape::Symbol)
+
+Compute the motif index for a given starting position (i, j) in the recurrence matrix `R`.
+
+# Arguments
+- `R::Union{ARM,AbstractMatrix}`: The recurrence matrix.
+- `i::Int`: The starting row index.
+- `j::Int`: The starting column index.
+- `L::Int`: The size of the motif (L x L).
+- `shape::Symbol`: The shape of the motif (`:square` or `:triangle`).
+
+# Returns
+- `motif_idx::Int`: The computed motif index.
+"""
+function compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::Int, shape::Symbol)
+    motif_idx = 0
+    expoente = 0
+
+    if shape == :square
+        # Square motif logic
+        for ly = 0:(L-1)
+            for lx = 0:(L-1)
+                if R[j + lx, i + ly] == 1
+                    motif_idx += 2^expoente
+                end
+                expoente += 1
+            end
+        end
+    elseif shape == :triangle
+        # Triangular motif logic (lower triangle)
+        for ly = 0:(L-1)
+            for lx in ly:(L-1)
+                if R[j + lx, i + ly] == 1
+                    motif_idx += 2^expoente
+                end
+                expoente += 1
+            end
+        end
+    else
+        throw(ArgumentError("Invalid shape. Use :square or :triangle."))
+    end
+
+    return motif_idx
+end
