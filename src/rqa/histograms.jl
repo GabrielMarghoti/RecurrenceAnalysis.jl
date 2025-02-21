@@ -255,7 +255,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:sq
     if shape == :square
         num_motifs = 2^(L * L)
     elseif shape == :triangle
-        num_motifs = 2^(div(L * (L + 1), 2))  # Only lower triangular part
+        num_motifs = 2^(div(L * (L + 1), 2))  
     else
         throw(ArgumentError("Invalid shape. Use :square or :triangle."))
     end
