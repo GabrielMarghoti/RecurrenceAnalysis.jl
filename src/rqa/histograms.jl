@@ -303,7 +303,12 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:sq
         end
     elseif sampling == :columnwise
         # Column-wise sampling
-        for j in 1:(N - L)
+        step_size = (N - L) / num_samples
+        for sample in 0:(num_samples - 1)
+            j = 1 + Int(round(sample * step_size))
+            if j > (N - L)
+                j = rand(1:1:(N - L))  # Ensure we don't go out of bounds
+            end
             for i in 1:(N - L)
                 motif_idx = compute_motif_index(R, i, j, L, shape)
                 dh[j, Int(1 + motif_idx)] += 1
