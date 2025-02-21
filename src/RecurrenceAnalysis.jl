@@ -55,7 +55,9 @@ export embed,
        sorteddistances,
        skeletonize,
        windowed,
-       rna
+       rna,
+       motifs_probabilities,
+       motifs_entropy
 
 include("matrices/distance_matrix.jl")
 include("matrices/recurrence_specification.jl")
