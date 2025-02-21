@@ -333,6 +333,12 @@ Compute the motif index for a given starting position (i, j) in the recurrence m
 - `L::Int`: The size of the motif (L x L).
 - `shape::Symbol`: The shape of the motif (`:square` or `:triangle`).
 
+Square motifs ref:
+Corso, Gilberto, et al. "Quantifying entropy using recurrence matrix microstates." Chaos: An Interdisciplinary Journal of Nonlinear Science 28.8 (2018).
+
+Triangular motifs ref:
+Hirata, Yoshito. "Recurrence plots for characterizing random dynamical systems." Communications in Nonlinear Science and Numerical Simulation 94 (2021): 105552.
+
 # Returns
 - `motif_idx::Int`: The computed motif index.
 """
