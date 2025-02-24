@@ -240,15 +240,15 @@ Calculate the probabilities of motifs from a given recurrence matrix `R` and a m
 
 # Arguments
 - `R::Union{ARM,AbstractMatrix}`: The recurrence matrix.
-- `L::Int`: The size of the motif (L x L).
-- `shape::Symbol`: The shape of the motif (`:square` or `:triangle`). Default is `:square`.
+- `L::Int`: The size of the motif (L x L), for :timepair shape it is the elapsed time between events pair.
+- `shape::Symbol`: The shape of the motif (`:square`, `:triangle`, or ':timepair'). Default is `:square`.
 - `sampling::Symbol`: The sampling strategy (`:full`, `:random`, or `:columnwise`). Default is `:full`.
 - `num_samples::Union{Int,Float64}`: Number of samples to collect. If a fraction (0 < num_samples < 1), it represents a fraction of the total number of motifs. Default is `1.0` (full sampling).
 
 # Returns
 - `probabilities::Vector{Float64}`: A vector of probabilities for each motif.
 """
-function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
+function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, Int}}; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
     N = size(R, 1)
     
     # Determine the number of motifs based on the shape
@@ -256,8 +256,10 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Int; shape::Symbol=:sq
         num_motifs = 2^(L * L)
     elseif shape == :triangle
         num_motifs = 2^(div(L * (L + 1), 2))  
+    elseif shape == :timepair
+        num_motifs = (2^2)
     else
-        throw(ArgumentError("Invalid shape. Use :square or :triangle."))
+        throw(ArgumentError("Invalid shape. Use :timepair, :square or :triangle."))
     end
 
     # Total number of possible motifs
@@ -331,13 +333,16 @@ Compute the motif index for a given starting position (i, j) in the recurrence m
 - `i::Int`: The starting row index.
 - `j::Int`: The starting column index.
 - `L::Int`: The size of the motif (L x L).
-- `shape::Symbol`: The shape of the motif (`:square` or `:triangle`).
+- `shape::Symbol`: The shape of the motif (`:square`, `:triangle`, or ':timepair'). Default is `:square`.
 
 Square motifs ref:
 Corso, Gilberto, et al. "Quantifying entropy using recurrence matrix microstates." Chaos: An Interdisciplinary Journal of Nonlinear Science 28.8 (2018).
 
 Triangular motifs ref:
 Hirata, Yoshito. "Recurrence plots for characterizing random dynamical systems." Communications in Nonlinear Science and Numerical Simulation 94 (2021): 105552.
+
+Timepair is a motif that considers any pair of points in the recurrence matrix. It is used to calculate the transition times probabilities between states.
+On development by Gabriel Marghoti
 
 # Returns
 - `motif_idx::Int`: The computed motif index.
@@ -366,8 +371,22 @@ function compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::In
                 expoente += 1
             end
         end
+    elseif shape == :timepair
+        if typeof(L) != Tuple{Int, Int}
+            throw(ArgumentError("For timepair motif, L must be a Tuple{Int, Int}."))
+        end
+        Lx, Ly = L
+        # Pair of time coordinates RP_i,j, RP_i+lx,j+ly motif logic
+        for ly in [0, Ly]
+            for lx in [0, Lx]
+                if R[j + ly, i + lx] == 1
+                    motif_idx += 2^expoente
+                end
+                expoente += 1
+            end
+        end
     else
-        throw(ArgumentError("Invalid shape. Use :square or :triangle."))
+        throw(ArgumentError("Invalid shape. Use :square, :timepair or :triangle."))
     end
 
     return motif_idx
