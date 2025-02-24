@@ -270,8 +270,8 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     dh = zeros(num_motifs)
 
     if sampling == :columnwise
-        dh = zeros(N-L, num_motifs)
-        total_motifs = (N - L)
+        dh = zeros(N-L[1], num_motifs)
+        total_motifs = (N - L[2])
     end
 
     # Determine the number of samples
