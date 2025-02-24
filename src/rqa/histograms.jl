@@ -381,9 +381,7 @@ function compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::Un
     elseif shape == :timepair
         lx, ly = L
         # Pair of time coordinates RP_i,j, RP_i+lx,j+ly motif logic
-        if R[j + ly, i + lx] == 1
-            motif_idx = R[j, i]*1 + R[j + ly, i + lx]*2
-        end
+        motif_idx = R[j, i]*1 + R[j + ly, i + lx]*2
     else
         throw(ArgumentError("Invalid shape. Use :square, :timepair or :triangle."))
     end
