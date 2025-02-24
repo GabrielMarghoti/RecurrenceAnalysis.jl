@@ -250,8 +250,11 @@ Calculate the probabilities of motifs from a given recurrence matrix `R` and a m
 """
 function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, Int}}; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
     N = size(R, 1)
-    
-    # Determine the number of motifs based on the shape
+
+    if typeof(L) == Int
+        L = (L, L)
+    end
+
     if shape == :square
         num_motifs = 2^(L * L)
     elseif shape == :triangle
@@ -262,8 +265,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         throw(ArgumentError("Invalid shape. Use :timepair, :square or :triangle."))
     end
 
-    # Total number of possible motifs
-    total_motifs = (N - L) * (N - L)
+    total_motifs = (N - L[1]) * (N - L[2])
 
     dh = zeros(num_motifs)
 
@@ -289,8 +291,8 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     # Determine the sampling strategy
     if sampling == :full
         # Full matrix sampling
-        for i in 1:(N - L)
-            for j in 1:(N - L)
+        for i in 1:(N - L[1])
+            for j in 1:(N - L[2])
                 motif_idx = compute_motif_index(R, i, j, L, shape)
                 dh[Int(1 + motif_idx)] += 1
             end
@@ -298,20 +300,20 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     elseif sampling == :random
         # Random sampling of motifs
         for _ in 1:num_samples
-            i = rand(1:(N - L))
-            j = rand(1:(N - L))
+            i = rand(1:(N - L[1]))
+            j = rand(1:(N - L[2]))
             motif_idx = compute_motif_index(R, i, j, L, shape)
             dh[Int(1 + motif_idx)] += 1
         end
     elseif sampling == :columnwise
         # Column-wise sampling
-        step_size = (N - L) / num_samples
+        step_size = (N - L[2]) / num_samples
         for sample in 0:(num_samples - 1)
             j = 1 + Int(round(sample * step_size))
-            if j > (N - L)
-                j = rand(1:1:(N - L))  # Ensure we don't go out of bounds
+            if j > (N - L[2])
+                j = rand(1:1:(N - L[2]))  # Ensure we don't go out of bounds
             end
-            for i in 1:(N - L)
+            for i in 1:(N - L[1])
                 motif_idx = compute_motif_index(R, i, j, L, shape)
                 dh[j, Int(1 + motif_idx)] += 1
             end
@@ -348,13 +350,18 @@ On development by Gabriel Marghoti
 - `motif_idx::Int`: The computed motif index.
 """
 function compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::Union{Int, Tuple{Int, Int}}, shape::Symbol)
+
+    if typeof(L) == Int
+        L = (L, L)
+    end
+
     motif_idx = 0
     expoente = 0
 
     if shape == :square
         # Square motif logic
-        for ly = 0:(L-1)
-            for lx = 0:(L-1)
+        for ly = 0:(L[2]-1)
+            for lx = 0:(L[1]-1)
                 if R[j + lx, i + ly] == 1
                     motif_idx += 2^expoente
                 end
@@ -363,8 +370,8 @@ function compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::Un
         end
     elseif shape == :triangle
         # Triangular motif logic (lower triangle)
-        for ly = 0:(L-1)
-            for lx in ly:(L-1)
+        for ly = 0:(L[2]-1)
+            for lx in ly:(L[1]-1)
                 if R[j + lx, i + ly] == 1
                     motif_idx += 2^expoente
                 end
@@ -372,9 +379,6 @@ function compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::Un
             end
         end
     elseif shape == :timepair
-        if typeof(L) != Tuple{Int, Int}
-            throw(ArgumentError("For timepair motif, L must be a Tuple{Int, Int}."))
-        end
         Lx, Ly = L
         # Pair of time coordinates RP_i,j, RP_i+lx,j+ly motif logic
         for ly in [0, Ly]
