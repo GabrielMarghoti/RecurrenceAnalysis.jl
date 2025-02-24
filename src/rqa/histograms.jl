@@ -292,7 +292,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     if sampling == :full
         # Full matrix sampling
         for i in 1:(N - L[1])
-            for j in 1:(N - L[2])
+            for j in (i+1):(N - L[2])
                 motif_idx = compute_motif_index(R, i, j, L, shape)
                 dh[Int(1 + motif_idx)] += 1
             end
@@ -301,19 +301,19 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         # Random sampling of motifs
         for _ in 1:num_samples
             i = rand(1:(N - L[1]))
-            j = rand(1:(N - L[2]))
+            j = rand((i+1):(N - L[2]))
             motif_idx = compute_motif_index(R, i, j, L, shape)
             dh[Int(1 + motif_idx)] += 1
         end
     elseif sampling == :columnwise
         # Column-wise sampling
-        step_size = (N - L[2]) / num_samples
-        for sample in 0:(num_samples - 1)
-            j = 1 + Int(round(sample * step_size))
-            if j > (N - L[2])
-                j = rand(1:1:(N - L[2]))  # Ensure we don't go out of bounds
-            end
-            for i in 1:(N - L[1])
+        for i in 1:(N - L[1])
+            step_size = (N - L[2]) / num_samples
+            for sample in 0:(num_samples - 1)
+                j = 1 + Int(round(sample * step_size))
+                if j > (N - L[2]) || j==i
+                    j = rand(1:1:(N - L[2]))  # Ensure we don't go out of bounds
+                end
                 motif_idx = compute_motif_index(R, i, j, L, shape)
                 dh[i, Int(1 + motif_idx)] += 1
             end
