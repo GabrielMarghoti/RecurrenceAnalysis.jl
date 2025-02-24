@@ -347,7 +347,7 @@ On development by Gabriel Marghoti
 # Returns
 - `motif_idx::Int`: The computed motif index.
 """
-function compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::Int, shape::Symbol)
+function compute_motif_index(R::Union{ARM,AbstractMatrix}, i::Int, j::Int, L::Union{Int, Tuple{Int, Int}}, shape::Symbol)
     motif_idx = 0
     expoente = 0
 
