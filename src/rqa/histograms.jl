@@ -288,8 +288,8 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         throw(ArgumentError("num_samples must be an Int or a Float64."))
     end
 
-    xrange = max(1, -(L[1])):min(N, N - L[1])
-    yrange = max(1, -(L[2])):min(N, N - L[2])
+    xrange = max(1, -(L[1]-1)):min(N, N - L[1])
+    yrange = max(1, -(L[2]-1)):min(N, N - L[2])
     # Determine the sampling strategy
     if sampling == :full
         # Full matrix sampling
