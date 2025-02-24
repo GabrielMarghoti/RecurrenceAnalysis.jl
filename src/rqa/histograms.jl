@@ -265,13 +265,13 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         throw(ArgumentError("Invalid shape. Use :timepair, :square or :triangle."))
     end
 
-    total_motifs = (N - L[1]) * (N - L[2])
+    total_motifs = (N - abs(L[1])) * (N - abs(L[2]))
 
     dh = zeros(num_motifs)
 
     if sampling == :columnwise
-        dh = zeros(N-L[1], num_motifs)
-        total_motifs = (N - L[2])
+        dh = zeros(N-abs(L[1]), num_motifs)
+        total_motifs = (N - abs(L[2]))
     end
 
     # Determine the number of samples
@@ -288,11 +288,13 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         throw(ArgumentError("num_samples must be an Int or a Float64."))
     end
 
+    xrange = max(1, -(L[1]-1)):min(N, N - L[1])
+    yrange = max(1, -(L[2]-1)):min(N, N - L[2])
     # Determine the sampling strategy
     if sampling == :full
         # Full matrix sampling
-        for i in 1:(N - L[1])
-            for j in 1:(N - L[2])
+        for i in xrange
+            for j in yrange
                 if j == i
                     continue
                 end
@@ -303,8 +305,8 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     elseif sampling == :random
         # Random sampling of motifs
         for _ in 1:num_samples
-            i = rand(1:(N - L[1]))
-            j = rand(1:(N - L[2]))
+            i = rand(xrange)
+            j = rand(yrange)
             if j == i
                 continue
             end
@@ -313,11 +315,11 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         end
     elseif sampling == :columnwise
         # Column-wise sampling
-        for i in 1:(N - L[1])
-            step_size = (N - L[2]) / num_samples
+        for i in xrange
+            step_size = (N - abs(L[2])) / num_samples
             for sample in 0:(num_samples - 1)
                 j = 1 + Int(round(sample * step_size))
-                if j > (N - L[2])
+                if j > (N - abs(L[2]))
                     j = rand(1:1:(N - L[2]))  # Ensure we don't go out of bounds
                 end
                 if j == i
