@@ -315,7 +315,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
             end
             for i in 1:(N - L[1])
                 motif_idx = compute_motif_index(R, i, j, L, shape)
-                dh[j, Int(1 + motif_idx)] += 1
+                dh[i, Int(1 + motif_idx)] += 1
             end
         end
     else
