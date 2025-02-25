@@ -324,7 +324,11 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
             elseif sampling_region == :upper
                 yrange = (i+1):min(N, N - L[2])
             end
-            j = rand(yrange)
+            try
+                j = rand(yrange)
+            catch
+                continue
+            end
             if j == i
                 continue
             end
