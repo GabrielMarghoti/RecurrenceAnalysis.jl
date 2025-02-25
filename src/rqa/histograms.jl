@@ -243,12 +243,13 @@ Calculate the probabilities of motifs from a given recurrence matrix `R` and a m
 - `L::Int`: The size of the motif (L x L), for :timepair shape it is the elapsed time between events pair.
 - `shape::Symbol`: The shape of the motif (`:square`, `:triangle`, or ':timepair'). Default is `:square`.
 - `sampling::Symbol`: The sampling strategy (`:full`, `:random`, or `:columnwise`). Default is `:full`.
+- `sampling_region::Symbol`: The sampling strategy (`:all`, `:lower`, or `:upper`). Default is `:full`.
 - `num_samples::Union{Int,Float64}`: Number of samples to collect. If a fraction (0 < num_samples < 1), it represents a fraction of the total number of motifs. Default is `1.0` (full sampling).
 
 # Returns
 - `probabilities::Vector{Float64}`: A vector of probabilities for each motif.
 """
-function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, Int}}; shape::Symbol=:square, sampling::Symbol=:full, num_samples::Union{Int,Float64}=1.0)
+function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, Int}}; shape::Symbol=:square, sampling::Symbol=:full, sampling_region=:all, num_samples::Union{Int,Float64}=1.0)
     N = size(R, 1)
 
     if typeof(L) == Int
@@ -265,14 +266,20 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         throw(ArgumentError("Invalid shape. Use :timepair, :square or :triangle."))
     end
 
-    total_motifs = (N - abs(L[1])) * (N - abs(L[2]))
-
     dh = zeros(num_motifs)
 
     if sampling == :columnwise
         dh = zeros(N-abs(L[1]), num_motifs)
         total_motifs = (N - abs(L[2]))
     end
+
+    total_motifs = (N - abs(L[1])) * (N - abs(L[2])-1) # Total number of motifs, remove diagonal
+    if sampling_region == :lower || sampling_region == :upper
+        total_motifs = div(total_motifs, 2)
+    elseif sampling_region != :all
+        throw(ArgumentError("Invalid sampling region. Use :all, :lower or :upper."))
+    end
+
 
     # Determine the number of samples
     if num_samples isa Float64 || num_samples == 1
@@ -287,13 +294,19 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     else
         throw(ArgumentError("num_samples must be an Int or a Float64."))
     end
-
+    
     xrange = max(1, -(L[1]-1)):min(N, N - L[1])
     yrange = max(1, -(L[2]-1)):min(N, N - L[2])
+
     # Determine the sampling strategy
     if sampling == :full
         # Full matrix sampling
         for i in xrange
+            if sampling_region == :lower
+                yrange = max(1, -(L[1]-1)):(i-1)
+            elseif sampling_region == :upper
+                yrange = (i+1):min(N, N - L[2])
+            end
             for j in yrange
                 if j == i
                     continue
@@ -306,6 +319,11 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         # Random sampling of motifs
         for _ in 1:num_samples
             i = rand(xrange)
+            if sampling_region == :lower
+                yrange = max(1, -(L[1]-1)):(i-1)
+            elseif sampling_region == :upper
+                yrange = (i+1):min(N, N - L[2])
+            end
             j = rand(yrange)
             if j == i
                 continue
