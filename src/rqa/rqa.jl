@@ -405,7 +405,7 @@ Calculate the probabilities of motifs from a given recurrence matrix `R` and a m
 """
 function motifs_probabilities(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, Int}}; shape::Symbol=:square, sampling::Symbol=:full, sampling_region::Symbol=:all, num_samples::Union{Int,Float64}=1.0)
     # Compute the motif histogram
-    histogram = motifshistogram(R, L; shape=shape, sampling=sampling, num_samples=num_samples)
+    histogram = motifshistogram(R, L; shape=shape, sampling=sampling, sampling_region=sampling_region, num_samples=num_samples)
 
     # Normalize the histogram to get probabilities
     if sampling == :columnwise
@@ -441,7 +441,7 @@ Compute the Shannon entropy of motifs from a given recurrence matrix `R` and a m
 """
 function motifs_entropy(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, Int}}; shape::Symbol=:square, sampling::Symbol=:full, sampling_region::Symbol=:all, num_samples::Union{Int,Float64}=1.0)
     # Compute the motif probabilities
-    probabilities = motifs_probabilities(R, L; shape=shape, sampling=sampling, num_samples=num_samples)
+    probabilities = motifs_probabilities(R, L; shape=shape, sampling=sampling, sampling_region, num_samples=num_samples)
 
     # Initialize entropy
     entropy = sampling != :columnwise ? 0.0 : zeros(size(probabilities, 1))
