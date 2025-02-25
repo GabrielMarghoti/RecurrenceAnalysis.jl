@@ -249,7 +249,7 @@ Calculate the probabilities of motifs from a given recurrence matrix `R` and a m
 # Returns
 - `probabilities::Vector{Float64}`: A vector of probabilities for each motif.
 """
-function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, Int}}; shape::Symbol=:square, sampling::Symbol=:full, sampling_region=:all, num_samples::Union{Int,Float64}=1.0)
+function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, Int}}; shape::Symbol=:square, sampling::Symbol=:full, sampling_region::Symbol=:all, num_samples::Union{Int,Float64}=1.0)
     N = size(R, 1)
 
     if typeof(L) == Int
