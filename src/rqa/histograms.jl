@@ -318,7 +318,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     elseif sampling == :random
         # Random sampling of motifs
         for _ in 1:num_samples
-            i = rand(max(max(1, -(L[1]-1))), -(L[2]-1)):min(min(N, N - L[1]), N - L[2])
+            i = rand(max((max(1, -(L[1]-1))), -(L[2]-1)):min(min(N, N - L[1]), N - L[2]))
             if sampling_region == :lower
                 yrange = max(1, -(L[2]-1)):(i-1)
             elseif sampling_region == :upper
