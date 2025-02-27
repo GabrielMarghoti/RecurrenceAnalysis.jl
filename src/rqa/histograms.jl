@@ -303,9 +303,9 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         # Full matrix sampling
         for i in xrange
             if sampling_region == :lower
-                yrange = max(1, -(L[1]-1)):(i-1)
+                yrange = max(1, -(L[2]-1)):(i)
             elseif sampling_region == :upper
-                yrange = (i+1):min(N, N - L[2])
+                yrange = (i):min(N, N - L[2])
             end
             for j in yrange
                 if j == i
