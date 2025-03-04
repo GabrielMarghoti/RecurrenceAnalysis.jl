@@ -253,15 +253,15 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     N = size(R, 1)
 
     if shape == :square
-        num_motifs = 2^(L * L)
+        num_motifs = 2^(L[1] * L[1])
     elseif shape == :triangle
-        num_motifs = 2^(div(L * (L + 1), 2))  
+        num_motifs = 2^(div(L[1] * (L[1] + 1), 2))  
     elseif shape == :timepair
         num_motifs = (2^2)
     else
         throw(ArgumentError("Invalid shape. Use :timepair, :square or :triangle."))
     end
-    
+
     if typeof(L) == Int
         L = (L, L)
     end
