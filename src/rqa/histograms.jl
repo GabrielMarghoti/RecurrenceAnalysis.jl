@@ -309,7 +309,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
                 yrange = (i):min(N, N - L[2])
             end
             for j in yrange
-                if j == i
+                if (j == i) or (i+L[1] == j+L[2])
                     continue
                 end
                 motif_idx = compute_motif_index(R, i, j, L, shape)
@@ -326,7 +326,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
                 yrange = (i):min(N, N - L[2])
             end
             j = rand(yrange)
-            if j == i
+            if (j == i) or (i+L[1] == j+L[2])
                 continue
             end
             motif_idx = compute_motif_index(R, i, j, L, shape)
@@ -341,7 +341,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
                 if j > (N - abs(L[2]))
                     j = rand(1:1:(N - L[2]))  # Ensure we don't go out of bounds
                 end
-                if j == i
+                if (j == i) or (i+L[1] == j+L[2])
                     continue
                 end
                 motif_idx = compute_motif_index(R, i, j, L, shape)
