@@ -335,7 +335,6 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         # Column-wise sampling
         for i in xrange
             for j in yrange
-                print("i: $i, j: $j\n")
                 if (j == i) || (i + L[1] == j + L[2])
                     continue
                 end
