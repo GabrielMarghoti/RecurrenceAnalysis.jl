@@ -270,7 +270,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     dh = zeros(num_motifs)
 
     if sampling == :columnwise
-        dh = zeros(N-abs(L[1]), num_motifs)
+        dh = zeros(N, num_motifs)
         total_motifs = (N - abs(L[2]))
     end
 
@@ -335,12 +335,7 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
     elseif sampling == :columnwise
         # Column-wise sampling
         for i in xrange
-            step_size = (N - abs(L[2])) / num_samples
-            for sample in 0:(num_samples - 1)
-                j = 1 + Int(round(sample * step_size))
-                if j > (N - abs(L[2]))
-                    j = rand(1:1:(N - L[2]))  # Ensure we don't go out of bounds
-                end
+            for j in yrange
                 if (j == i) || (i + L[1] == j + L[2])
                     continue
                 end
