@@ -333,7 +333,12 @@ function motifshistogram(R::Union{ARM,AbstractMatrix}, L::Union{Int, Tuple{Int, 
         end
     elseif sampling == :columnwise
         # Column-wise sampling
-        for i in xrange
+        for i in xrange            
+            if sampling_region == :lower
+                yrange = max(1, -(L[2]-1)):(i)
+            elseif sampling_region == :upper
+                yrange = (i):min(N, N - L[2])
+            end
             for j in yrange
                 if (j == i) || (i + L[1] == j + L[2])
                     continue
